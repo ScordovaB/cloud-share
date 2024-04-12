@@ -55,6 +55,10 @@ def dashboard():
         return redirect(url_for('index'))
     return render_template('dashboard.html')
 
+@app.route('/upload')
+def upload():
+    return render_template('upload.html', session = session)
+
 @app.route('/create_user', methods=['GET', 'POST'])
 def create_user():
     if request.method == 'POST':
