@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Upload</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h2>Welcome to the Upload Template</h2>
-        <h3>Session: {{session}}</h3>
+        <h2>Upload your file here!</h2>
+        <!--<h3>Session: {{session}}</h3>--> <!--user_id es lo que se guarda en session-->
         <p>Upload your file here:</p>
-        <form action="/action_page.php">
-            <input type="file" id="myFile" name="filename">
-            <input type="submit">
+        <form method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+            <input type="file" id="myFile" name="filetosave">
+            <button class="upload">Upload</button>
           </form>
     </div>
 </body>

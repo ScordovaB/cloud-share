@@ -3,6 +3,13 @@ import pymysql.cursors
 from flask_bcrypt import Bcrypt
 import os
 from dotenv import load_dotenv
+import boto3
+import uuid
+
+ALLOWED_EXTENSIONS = {'txt','pdf','png','jpg','docx','pptx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,10 +60,40 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('index'))
-    return render_template('dashboard.html')
+    
+    username = session.get('username')  # Retrieve username from session
+    if not username:
+        # Optional: Fetch username from the database if not in session
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT username FROM users WHERE user_id=%s", (session['user_id'],))
+                user = cursor.fetchone()
+                if user:
+                    username = user['username']
+                else:
+                    # Handle error or invalid session data
+                    flash("User not found. Please login again.")
+                    return redirect(url_for('index'))
 
-@app.route('/upload')
+    return render_template('dashboard.html', username=username)
+
+@app.route('/upload', methods=['GET', 'POST'])
 def upload():
+    if request.method == "POST":
+        uploaded_file= request.files["filetosave"]
+        if not allowed_file(uploaded_file.filename):
+            return "FILE NOT ALLOWED"
+        
+        new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
+
+        bucket_name = 'cloud-test-scb'
+        s3 = boto3.resource('s3',region_name='us-east-1')
+        #  aws_access_key_id=os.getenv('ACCESS_ID'),
+        #  aws_secret_access_key=os.getenv('ACCESS_KEY'))
+        s3.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
+
+        return redirect(url_for('dashboard'))
+    
     return render_template('upload.html', session = session)
 
 @app.route('/create_user', methods=['GET', 'POST'])

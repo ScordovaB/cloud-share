@@ -14,14 +14,16 @@
             <div class="menu">
                 <img class="logo" src="{{ url_for('static', filename='logo3.png') }}" alt="I-Share">
                 <br><br><br>
-                <input class="upload" type="button" value="+  Add">
+                <a href="{{ url_for('upload') }}">
+                    <input class="upload" type="button" value="+  Add">
+                </a>
                 <br><br>
                     <a href="#" class="selected">My Documents</a>
                     <a href="#">Shared with me</a>
                     <a href="#">Favorites</a>
             </div>
             <div class="main">
-                <h1>Hi <a>Santiago,</a> </h1><hr>
+                <h1>Hi <a>{{username}},</a> </h1><hr>
                 <br>
                 <div class="row">
                     <table class="file-table">
