@@ -86,7 +86,7 @@ def upload():
         
         new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
 
-        bucket_name = 'cloud-test-scb'
+        bucket_name = os.getenv('BUCKET')
         s3 = boto3.resource('s3',region_name='us-east-1')
         #  aws_access_key_id=os.getenv('ACCESS_ID'),
         #  aws_secret_access_key=os.getenv('ACCESS_KEY'))
