@@ -85,11 +85,12 @@ def upload():
             return "FILE NOT ALLOWED"
         
         new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
-
-        bucket_name = os.getenv('BUCKET')
-        s3 = boto3.resource('s3',region_name='us-east-1')
-        #  aws_access_key_id=os.getenv('ACCESS_ID'),
-        #  aws_secret_access_key=os.getenv('ACCESS_KEY'))
+        print(new_filename)
+        bucket_name = 'cloud-test-scb' #os.getenv('BUCKET')
+        s3 = boto3.resource('s3',region_name='us-east-1',
+          aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
+          aws_secret_access_key=os.getenv('ACCESS_KEY'),
+          aws_session_token=os.getenv('ACCESS_TOKEN')) #
         s3.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
 
         return redirect(url_for('dashboard'))
