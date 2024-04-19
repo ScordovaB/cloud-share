@@ -1,0 +1,3 @@
+- agregar INSERT en tabla "files" en funcion "upload" para agregar metadatos del bucket a la base (RDS)
+    - hacer select * from files; para obtener columnas
+- agregar en dashboard GET o SELECT , para iterar en html de dashboard con los datos, de ese user id iniciado en sesion.
