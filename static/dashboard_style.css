@@ -24,11 +24,16 @@ body {
     margin: 0 auto;
 }
 
+.add_button {
+    padding-right:0px;
+}
+
 .upload {
     border: 0;
     line-height: 2.2;
     width: 150px;
     padding-top: 0%;
+    padding-right: 10%;
     font-size: 1.3rem;
     font-family: Century Gothic, sans-serif;
     font-weight: bold;
@@ -36,17 +41,13 @@ body {
     color: #fff;
     border-radius: 14px;
     background-color: #002142;
-
-    box-shadow:
-      inset -2px -2px 3px rgb(0 0 0 / 60%);
-    
-    display: block;
-    margin: 0 auto;
+    box-shadow: inset -2px -2px 3px rgb(0 0 0 / 60%);
 }
-  
+
 .upload:hover {
     background-color: #3D74B5;
 }
+
    
 .menu {
     flex: 15%;
@@ -94,6 +95,10 @@ hr {
     margin-left: -20px; 
     padding-left: 25px;
     background-color: #eeeded;
+}
+
+.menu a.logout {
+    /*padding-top: 80px;*/
 }
 
 .main {
