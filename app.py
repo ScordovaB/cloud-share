@@ -105,8 +105,11 @@ def upload():
         
         new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
         print(new_filename)
-
-        s3.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
+        s3_name = boto3.resource('s3',region_name='us-east-1',
+                aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
+                aws_secret_access_key=os.getenv('ACCESS_KEY'),
+                aws_session_token=os.getenv('ACCESS_TOKEN')) #
+        s3_name.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
 
         original_file_name = uploaded_file.filename
 

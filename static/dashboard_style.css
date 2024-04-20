@@ -206,6 +206,16 @@ label {
     display: block;
 }
 
+.form{
+    text-align: center;
+    color: #232f3e;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: transparent;
+    border: none;
+}
 
 
 .box {
