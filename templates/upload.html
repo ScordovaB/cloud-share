@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Upload your file here!</h2>
+        <!--<h3>Session: {{session}}</h3>--> <!--user_id es lo que se guarda en session-->
+        <p>Upload your file here:</p>
+        <form method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+            <input type="file" id="myFile" name="filetosave"><br><br>
+            <button class="upload" href="{{ url_for('dashboard') }}">Upload</button><br>
+            <a  href="{{ url_for('dashboard') }}"><img class="home_icon" src="{{ url_for('static', filename='home_logo.png') }}"></a>
+          </form>
+    </div>
+</body>
+</html>

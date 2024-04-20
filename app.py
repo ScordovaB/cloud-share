@@ -1,8 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pymysql.cursors
 from flask_bcrypt import Bcrypt
 import os
 from dotenv import load_dotenv
+import boto3
+import uuid
+
+ALLOWED_EXTENSIONS = {'txt','pdf','png','jpg','docx','pptx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,7 +60,70 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('index'))
-    return render_template('dashboard.html')
+    
+    username = session.get('username')  # Retrieve username from session
+    if not username:
+        # Optional: Fetch username from the database if not in session
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT username FROM users WHERE user_id=%s", (session['user_id'],))
+                user = cursor.fetchone()
+                if user:
+                    username = user['username']
+                else:
+                    # Handle error or invalid session data
+                    flash("User not found. Please login again.")
+                    return redirect(url_for('index'))
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM files WHERE user_id=%s", (session['user_id'],))
+            files = cursor.fetchall()
+            print(files)
+
+    return render_template('dashboard.html', username=username,files=files)
+
+bucket_name = 'cloud-test-scb' #os.getenv('BUCKET')
+s3 = boto3.client('s3',region_name='us-east-1',
+    aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
+    aws_secret_access_key=os.getenv('ACCESS_KEY'),
+    aws_session_token=os.getenv('ACCESS_TOKEN')) #
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    user_id = session.get('user_id')  # Retrieve username from session
+    print(user_id)
+    if request.method == "POST":
+        uploaded_file= request.files["filetosave"]
+        
+        #Get file size
+        uploaded_file.stream.seek(0,2)
+        file_size = uploaded_file.stream.tell()
+        uploaded_file.stream.seek(0,0)
+
+        if not allowed_file(uploaded_file.filename):
+            return "FILE NOT ALLOWED"
+        
+        new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
+        print(new_filename)
+        s3_name = boto3.resource('s3',region_name='us-east-1',
+                aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
+                aws_secret_access_key=os.getenv('ACCESS_KEY'),
+                aws_session_token=os.getenv('ACCESS_TOKEN')) #
+        s3_name.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
+
+        original_file_name = uploaded_file.filename
+
+        bucket_file='https://cloud-test-scb.s3.amazonaws.com/' + new_filename #final url bucket
+        
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO files (user_id, file_name, file_size, bucket, region, original_file_name) VALUES (%s, %s, %s, %s, %s, %s)", (user_id, new_filename, file_size, bucket_file, 'us-east-1',original_file_name))
+                conn.commit()
+
+
+        return redirect(url_for('dashboard'))
+    
+    return render_template('upload.html', session = session)
 
 @app.route('/create_user', methods=['GET', 'POST'])
 def create_user():
@@ -70,6 +140,25 @@ def create_user():
                 return redirect(url_for('index'))
 
     return render_template('create_user.html')
+
+@app.route('/delete_object', methods=['POST'])
+def delete_object():
+    bucket_name = request.form['bucket']
+    object_key = request.form['key']
+
+    # try:
+        # Delete en S3
+    s3.delete_object(Bucket=bucket_name, Key=object_key)
+    #Delete en RDS
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM files WHERE file_name=%s", object_key)
+            conn.commit()
+    # Regresar a dashboard
+    return redirect(url_for('dashboard'))
+    # except:
+    #     # Error
+    #     return "Error deleting the object", 500
 
 if __name__ == '__main__':
     app.run(debug=True)

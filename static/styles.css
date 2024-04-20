@@ -44,14 +44,70 @@ input[type="password"] {
 input[type="submit"] {
     width: 100%;
     padding: 10px;
+    margin-top: 10px;
     border: none;
     border-radius: 3px;
-    background-color: #ff9900; /* AWS orange */
+    background-color: #002142; /* AWS orange #ff9900*/
     color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
+button{
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: #002142; /* AWS orange #ff9900*/
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+button:hover{
+    background-color: #3D74B5;
+}
+
 input[type="submit"]:hover {
     background-color: #e68a00; /* AWS darker orange */
+}
+
+.upload {
+    border: 0;
+    width: 400px;
+    font-size: 1.2rem;
+    height: 50px;
+    font-family: Century Gothic, sans-serif;
+    text-align: center;
+    color: #fff;
+    border-radius: 10px;
+    background-color: #002142;
+
+    box-shadow:
+      inset -2px -2px 3px rgb(0 0 0 / 60%);
+    
+    display: block;
+    margin: 0 auto;
+}
+  
+.upload:hover {
+    background-color: #3D74B5;
+}
+
+.home_icon {
+    width: 45px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+
+
+.home_icon:hover{
+    background-color: #c0bfbf;
 }
