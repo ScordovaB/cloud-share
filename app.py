@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pymysql.cursors
 from flask_bcrypt import Bcrypt
 import os
@@ -82,6 +82,12 @@ def dashboard():
 
     return render_template('dashboard.html', username=username,files=files)
 
+bucket_name = 'cloud-test-scb' #os.getenv('BUCKET')
+s3 = boto3.client('s3',region_name='us-east-1',
+    aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
+    aws_secret_access_key=os.getenv('ACCESS_KEY'),
+    aws_session_token=os.getenv('ACCESS_TOKEN')) #
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     user_id = session.get('user_id')  # Retrieve username from session
@@ -99,11 +105,7 @@ def upload():
         
         new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
         print(new_filename)
-        bucket_name = 'cloud-test-scb' #os.getenv('BUCKET')
-        s3 = boto3.resource('s3',region_name='us-east-1',
-          aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
-          aws_secret_access_key=os.getenv('ACCESS_KEY'),
-          aws_session_token=os.getenv('ACCESS_TOKEN')) #
+
         s3.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
 
         original_file_name = uploaded_file.filename
@@ -135,6 +137,25 @@ def create_user():
                 return redirect(url_for('index'))
 
     return render_template('create_user.html')
+
+@app.route('/delete_object', methods=['POST'])
+def delete_object():
+    bucket_name = request.form['bucket']
+    object_key = request.form['key']
+
+    # try:
+        # Delete en S3
+    s3.delete_object(Bucket=bucket_name, Key=object_key)
+    #Delete en RDS
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM files WHERE file_name=%s", object_key)
+            conn.commit()
+    # Regresar a dashboard
+    return redirect(url_for('dashboard'))
+    # except:
+    #     # Error
+    #     return "Error deleting the object", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
