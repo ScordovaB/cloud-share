@@ -74,13 +74,26 @@ def dashboard():
                     # Handle error or invalid session data
                     flash("User not found. Please login again.")
                     return redirect(url_for('index'))
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM files WHERE user_id=%s", (session['user_id'],))
+            files = cursor.fetchall()
+            print(files)
 
-    return render_template('dashboard.html', username=username)
+    return render_template('dashboard.html', username=username,files=files)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
+    user_id = session.get('user_id')  # Retrieve username from session
+    print(user_id)
     if request.method == "POST":
         uploaded_file= request.files["filetosave"]
+        
+        #Get file size
+        uploaded_file.stream.seek(0,2)
+        file_size = uploaded_file.stream.tell()
+        uploaded_file.stream.seek(0,0)
+
         if not allowed_file(uploaded_file.filename):
             return "FILE NOT ALLOWED"
         
@@ -92,6 +105,16 @@ def upload():
           aws_secret_access_key=os.getenv('ACCESS_KEY'),
           aws_session_token=os.getenv('ACCESS_TOKEN')) #
         s3.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
+
+        original_file_name = uploaded_file.filename
+
+        bucket_file='https://cloud-test-scb.s3.amazonaws.com/' + new_filename #final url bucket
+        
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO files (user_id, file_name, file_size, bucket, region, original_file_name) VALUES (%s, %s, %s, %s, %s, %s)", (user_id, new_filename, file_size, bucket_file, 'us-east-1',original_file_name))
+                conn.commit()
+
 
         return redirect(url_for('dashboard'))
     
