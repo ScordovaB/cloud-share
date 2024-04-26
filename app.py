@@ -23,7 +23,7 @@ app.config['MYSQL_USER'] = os.getenv('MYSQL_DATABASE_USER')
 app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_DATABASE_PASSWORD')
 app.config['MYSQL_DB'] = os.getenv('MYSQL_DATABASE_DB')
 app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_DATABASE_PORT', 3306))
-app.secret_key = os.getenv('SECRET_KEY')
+app.secret_key = 'os.getenv()'
 
 # Database connection function
 def get_db_connection():
@@ -41,25 +41,28 @@ def index():
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
+    email = request.form['email']
     password = request.form['password']
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE username=%s", (email,))
+                user = cursor.fetchone()
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
-            user = cursor.fetchone()
-
-            if user and bcrypt.check_password_hash(user['password'], password):
-                session['user_id'] = user['user_id']  # Adjusted to use dictionary access
-                return redirect(url_for('dashboard'))
-            else:
-                flash("Invalid username or password. Please try again.")
-                return redirect(url_for('index'))
+                if user and bcrypt.check_password_hash(user['password'], password):
+                    session['user_id'] = user['user_id']  # Adjusted to use dictionary access
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash("Invalid username or password. Please try again.")
+                    return redirect(url_for('index'))
+    except:
+        flash("An error ocurred, try again")
+        return redirect(url_for('index'))
 
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('index'), )
     
     username = session.get('username')  # Retrieve username from session
     if not username:
@@ -126,16 +129,20 @@ def upload():
 @app.route('/create_user', methods=['GET', 'POST'])
 def create_user():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, username, hashed_password))
-                conn.commit()
-                flash("User created successfully. Please log in.")
-                return redirect(url_for('index'))
+        try:           
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (email, email, hashed_password))
+                    conn.commit()
+                    flash("User created successfully. Please log in.")
+                    return redirect(url_for('index'))
+        except:
+            flash("An error ocurred, try another email")
+            return redirect(url_for('create_user'))
 
     return render_template('create_user.html')
 
