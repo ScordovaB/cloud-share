@@ -21,6 +21,11 @@
                     <a href="{{ url_for('index') }}" class="logout">Logout</a>
             </div>
             <div class="main">
+                {% for message in get_flashed_messages() %}
+                <div class="alert" style="color: red;">
+                    {{ message[0:22] }}
+                </div>
+                {% endfor %}
                 <h1>Hi <a>{{username}},</a> </h1><hr>
                 <br>
                 <div class="row">

@@ -104,6 +104,14 @@ def upload():
 
         if not allowed_file(uploaded_file.filename):
             return "FILE NOT ALLOWED"
+
+        # with get_db_connection() as conn:
+        #     with conn.cursor() as cursor:
+        #         cursor.execute("SELECT COUNT(*) FROM files WHERE user_id=%s", (session['user_id'],))
+        #         conteo = cursor.fetchone()
+        #         if conteo > 10:
+        #             flash('10 files max per user')
+        #             return redirect(url_for('dashboard'))
         
         new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
         print(new_filename)
