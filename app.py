@@ -82,11 +82,10 @@ def dashboard():
 
     return render_template('dashboard.html', username=username,files=files)
 
-bucket_name = 'cloud-test-scb' #os.getenv('BUCKET')
+bucket_name = os.getenv('BUCKET')
 s3 = boto3.client('s3',region_name='us-east-1',
     aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
-    aws_secret_access_key=os.getenv('ACCESS_KEY'),
-    aws_session_token=os.getenv('ACCESS_TOKEN')) #
+    aws_secret_access_key=os.getenv('ACCESS_KEY')) #
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
@@ -107,13 +106,12 @@ def upload():
         print(new_filename)
         s3_name = boto3.resource('s3',region_name='us-east-1',
                 aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
-                aws_secret_access_key=os.getenv('ACCESS_KEY'),
-                aws_session_token=os.getenv('ACCESS_TOKEN')) #
+                aws_secret_access_key=os.getenv('ACCESS_KEY')) #
         s3_name.Bucket(bucket_name).upload_fileobj(uploaded_file, new_filename)
 
         original_file_name = uploaded_file.filename
 
-        bucket_file='https://cloud-test-scb.s3.amazonaws.com/' + new_filename #final url bucket
+        bucket_file='https://'+ bucket_name +'.s3.amazonaws.com/' + new_filename #final url bucket
         
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
@@ -143,12 +141,12 @@ def create_user():
 
 @app.route('/delete_object', methods=['POST'])
 def delete_object():
-    bucket_name = request.form['bucket']
+    b_name = bucket_name
     object_key = request.form['key']
 
     # try:
         # Delete en S3
-    s3.delete_object(Bucket=bucket_name, Key=object_key)
+    s3.delete_object(Bucket=b_name, Key=object_key)
     #Delete en RDS
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
