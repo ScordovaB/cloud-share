@@ -81,7 +81,7 @@ def dashboard():
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM files WHERE user_id=%s", (session['user_id'],))
             files = cursor.fetchall()
-            print(files)
+            #print(files)
 
     return render_template('dashboard.html', username=username,files=files)
 
@@ -93,7 +93,7 @@ s3 = boto3.client('s3',region_name='us-east-1',
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     user_id = session.get('user_id')  # Retrieve username from session
-    print(user_id)
+    #print(user_id)
     if request.method == "POST":
         uploaded_file= request.files["filetosave"]
         
@@ -105,16 +105,16 @@ def upload():
         if not allowed_file(uploaded_file.filename):
             return "FILE NOT ALLOWED"
 
-        # with get_db_connection() as conn:
-        #     with conn.cursor() as cursor:
-        #         cursor.execute("SELECT COUNT(*) FROM files WHERE user_id=%s", (session['user_id'],))
-        #         conteo = cursor.fetchone()
-        #         if conteo > 10:
-        #             flash('10 files max per user')
-        #             return redirect(url_for('dashboard'))
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM files WHERE user_id=%s", (session['user_id'],))
+                conteo = cursor.fetchone()
+                if conteo['COUNT(*)'] > 4:
+                    flash('5 files max per user')
+                    return redirect(url_for('dashboard'))
         
         new_filename = uuid.uuid4().hex + '.' + uploaded_file.filename.rsplit('.',1)[1].lower()
-        print(new_filename)
+        #print(new_filename)
         s3_name = boto3.resource('s3',region_name='us-east-1',
                 aws_access_key_id= os.getenv('ACCESS_ID'), #os.getenv('ACCESS_ID')
                 aws_secret_access_key=os.getenv('ACCESS_KEY')) #
@@ -174,4 +174,4 @@ def delete_object():
     #     return "Error deleting the object", 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
